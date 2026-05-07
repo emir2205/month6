@@ -1,6 +1,11 @@
 from rest_framework.response import Response
 from rest_framework import status
-from .serializers import UserCreateSerializer, UserAuthSerializer, ConfirmUserSerializer
+from .serializers import (
+    ConfirmUserSerializer,
+    CustomTokenObtainPairSerializer,
+    UserAuthSerializer,
+    UserCreateSerializer,
+)
 from django.contrib.auth import authenticate
 from rest_framework.authtoken.models import Token
 from .models import ConfirmationCode
@@ -8,10 +13,13 @@ from rest_framework.views import APIView
 import random
 from django.contrib.auth import get_user_model
 from drf_yasg.utils import swagger_auto_schema
+from rest_framework_simplejwt.views import TokenObtainPairView
 
 User = get_user_model()
 
-
+class CustomTokenObtainPairView(TokenObtainPairView):
+    serializer_class = CustomTokenObtainPairSerializer
+    
 class AuthorizationAPIView(APIView):
     serializer_class = UserAuthSerializer
 
@@ -41,8 +49,15 @@ class RegistrationAPIView(APIView):
         email = serializer.validated_data.get('email')
         password = serializer.validated_data.get('password')
         phone_number = serializer.validated_data.get('phone_number', '')
+        birthdate = serializer.validated_data.get('birthdate')
 
-        user = User.objects.create_user(email=email, password=password, phone_number=phone_number, is_active=False)
+        user = User.objects.create_user(
+            email=email,
+            password=password,
+            phone_number=phone_number,
+            birthdate=birthdate,
+            is_active=False,
+        )
 
         code = ''.join([str(random.randint(0, 9)) for _ in range(6)])
         ConfirmationCode.objects.create(user=user, code=code)

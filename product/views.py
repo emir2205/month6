@@ -8,6 +8,7 @@ from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
 
 from common.permissions import CanEditInSomeTime, IsAnonymous, IsModerator, IsOwner
+from common.validators import validate_birthdate_for_product_create
 
 from .models import Category, Product, Review
 from .serializers import (
@@ -84,6 +85,7 @@ class ProductListCreateAPIView(ListCreateAPIView):
         return [permission() for permission in self.permission_classes]
 
     def post(self, request, *args, **kwargs):
+        validate_birthdate_for_product_create(request)
         serializer = ProductValidateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
